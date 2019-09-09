@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
-import Graph from "./Graph";
-import Button from "./Button";
+import LineChart from "components/LineChart";
+import Button from "components/Button";
 
 class GraphContainer extends Component {
 
@@ -35,7 +35,7 @@ class GraphContainer extends Component {
                                    this.activateGraph(graph);
                                }}/>
             })}
-            <Graph values={this.state.shownValues}/>
+            <LineChart values={this.state.shownValues}/>
         </div>
     }
 

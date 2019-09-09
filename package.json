@@ -1,36 +1,53 @@
 {
-  "name": "graph-component",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "prepublishOnly": "rm -rf lib && npm run build",
+  "postbuild": "npm pack && tar -xvzf *.tgz && rm -rf package *.tgz",
+  "name": "graph-ui-components",
+  "main": "lib/index.js",
+  "browser": "lib/index.umd.js",
+  "module": "lib/index.es.js",
+  "version": "1.0.9",
+  "description": "Line chart react component",
+  "files": [
+    "/lib"
+  ],
+  "repository": "",
   "scripts": {
     "test": "jest",
-    "start": "styleguidist server"
+    "start": "styleguidist server",
+    "build": "rollup -c"
   },
   "keywords": [],
   "author": "Gijs Erenstein",
   "license": "ISC",
   "peerDependencies": {
-    "@babel/core": "^7.5.5",
-    "@emotion/styled": "^10.0.15",
     "react": "^16.9.0",
-    "react-dom": "^16.9.0"
+    "react-dom": "^16.9.0",
+    "styled-components": "^4.3.2"
   },
   "devDependencies": {
     "@babel/core": "^7.5.5",
     "@babel/preset-env": "^7.5.5",
     "@babel/preset-react": "^7.0.0",
     "@testing-library/react": "^9.1.3",
-    "babel-plugin-emotion": "^10.0.16",
     "babel-plugin-module-resolver": "^3.2.0",
     "jest": "^24.9.0",
     "react": "^16.9.0",
     "react-dom": "^16.9.0",
     "react-styleguidist": "^9.1.16",
-    "webpack": "^4.39.3"
+    "styled-components": "^4.3.2",
+    "rollup": "^1.20.3",
+    "rollup-plugin-babel": "^4.3.3",
+    "rollup-plugin-commonjs": "^10.1.0",
+    "rollup-plugin-node-resolve": "^5.2.0",
+    "rollup-plugin-peer-deps-external": "^2.2.0",
+    "rollup-plugin-terser": "^5.1.1",
+    "rollup-plugin-uglify": "^6.0.3",
+    "webpack": "^4.39.3",
+    "babel-loader": "^8.0.6"
   },
   "dependencies": {
-    "babel-loader": "^8.0.6",
+    "react": "^16.9.0",
+    "react-dom": "^16.9.0",
     "styled-components": "^4.3.2"
   }
 }

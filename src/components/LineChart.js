@@ -49,7 +49,8 @@ const LightBlueDot = styled.line`
 
 const TopLine = styled.line`
   stroke-width : 2px;
-  stroke: ${lightColors.interactive};
+  stroke: ${colors.interactive};
+  opacity: 0.2;
   vector-effect: non-scaling-stroke;
   pointer-events : none;
 `;
@@ -102,8 +103,9 @@ const Value = styled.span`
 const ChartFill = styled.polyline`
   vector-effect: non-scaling-stroke;
   pointer-events : none;
-  fill : ${lightColors.interactive};
-  stroke: ${lightColors.interactive};
+  fill : ${colors.interactive};
+  stroke: ${colors.interactive};
+  opacity: 0.2;
   stroke-width: 2;
 `;
 
@@ -116,7 +118,7 @@ const ChartLine = styled.polyline`
 `;
 
 
-class Graph extends Component {
+class LineChart extends Component {
 
     constructor(props) {
         super(props);
@@ -224,4 +226,4 @@ class Graph extends Component {
     }
 }
 
-export default Graph;
+export default LineChart;
