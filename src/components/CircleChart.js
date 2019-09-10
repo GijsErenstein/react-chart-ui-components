@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import styled from "styled-components";
 import formatNumber from "helpers/NumberFormatter";
-import { colors, lightColors, spacings } from 'config/styles.js';
+import { colors, spacings } from 'config/styles';
 
 const Container = styled.div`
     display : block;
@@ -21,7 +21,7 @@ const Value = styled.div`
     width: 150px;
 `;
 
-const Postfix = styled.div`
+const Metric = styled.div`
     position: absolute;
     display : block;
     text-align: center;
@@ -30,6 +30,12 @@ const Postfix = styled.div`
     color: ${colors.interactive};
     font-family : sans-serif;
     width: 150px;
+`;
+
+const ValueAddition = styled.span`
+    font-size: ${spacings.medium};
+    color: ${colors.interactive};
+    font-family : sans-serif;
 `;
 
 const ChartContainer = styled.svg`
@@ -80,8 +86,12 @@ class CircleChart extends Component {
                             cy="16.91549431"
                             r="15.91549431"/>
                 </ChartContainer>
-                <Value>{this.props.prefix}{value}</Value>
-                <Postfix>{this.props.postfix}</Postfix>
+                <Value>
+                    <ValueAddition>{this.props.prefix}</ValueAddition>
+                    {value}
+                    <ValueAddition>{this.props.postfix}</ValueAddition>
+                </Value>
+                <Metric>{this.props.metric}</Metric>
             </Container>
         )
     }
