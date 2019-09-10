@@ -1,5 +1,5 @@
 ```jsx
-import Button from "./GraphContainer";
+/*import Button from "./GraphContainer";
 
 <GraphContainer graphs={[
     {
@@ -11,5 +11,5 @@ import Button from "./GraphContainer";
         values : [3,10,50,100,70,80,20,32,8,10,50,60,70,80,20,15,8,10,50,100,70,80,20,15,8,10,50]
     }
 ]} 
-/>
+/>*/
 ```

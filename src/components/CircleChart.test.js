@@ -1,19 +1,19 @@
 import { render, getByText } from "@testing-library/react";
 import React from "react";
-import LineChart from "/components/LineChart";
+import CircleChart from "/components/CircleChart";
 
-describe("LineChart", () => {
+describe("CircleChart", () => {
     test("should render with values", () => {
-        const { container } = render(<LineChart values={[1,2,3,4]} />);
+        const { container } = render(<CircleChart value={10} maxValue={100}  />);
     });
 
     test("should render when empty", () => {
-        const { container } = render(<LineChart />);
+        const { container } = render(<CircleChart />);
     });
 
     // todo: test number formatting
 
-    // todo: test popup rendering
+    // todo: test percentage
 
     // todo: test prefix
 

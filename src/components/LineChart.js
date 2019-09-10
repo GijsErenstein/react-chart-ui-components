@@ -1,5 +1,7 @@
 import React, { Component } from 'react';
 import { colors, lightColors, spacings } from 'config/styles.js';
+import { PopIn } from 'config/Keyframes.js';
+import formatNumber from "helpers/NumberFormatter";
 import styled from "styled-components";
 
 const Container = styled.div`
@@ -11,7 +13,7 @@ const Container = styled.div`
 const ChartContainer = styled.svg`
     display : block;
     overflow: visible;
-    height: 100px;
+    height: 150px;
     width: 100%;
     position: relative;
 `;
@@ -68,8 +70,51 @@ const BottomLine = styled.line`
   }
 `;
 
+const AxisLine = styled.div`
+  display: flex;
+  flex-flow: row nowrap;
+  border-top : 2px solid ${colors.dark}; 
+`;
+
+const AxisPoint = styled.div`
+  flex: 1 1 auto;
+  border-left : 2px solid ${colors.dark}; 
+  pointer-events : none;
+  overflow: visible;
+  position: relative;
+  height: 10px;
+  
+  &:last-child {
+    width: 0;
+    flex: 0 0 0; 
+  }
+`;
+
+const AxisValue = styled.div`
+  top: 12px;
+  left: 0;
+  position: absolute;
+  color : ${colors.dark};
+  font-family : sans-serif;
+  font-size : 12px;
+  font-weight: lighter;
+  text-align: center;
+  min-width: 100px;
+  transform:translate(-50%,0);
+
+  ${AxisPoint}:last-child & {
+    text-align: right;
+    transform:translate(-100%,0);
+  }
+
+  ${AxisPoint}:first-child & {
+    text-align: left;
+    transform:translate(0,0);
+  }
+`;
+
 const Value = styled.span`
-  display: none;
+  display: inline-block;
   font-size : 12px;
   color : ${colors.white};
   font-family : sans-serif;
@@ -81,10 +126,11 @@ const Value = styled.span`
   padding: ${spacings.tiny} ${spacings.small};
   border-radius: ${spacings.tiny};
   opacity: 0;
-  transition: opacity 200ms, left 200ms;
+  transition: opacity 200ms;
+  
+  animation: ${PopIn} 200ms ease-out;
   
   &:not(:empty) {
-    display: inline-block;
     opacity: 1;
     
     &:after {
@@ -127,8 +173,10 @@ class LineChart extends Component {
         this.formatValuesForDots = this.formatValuesForDots.bind(this);
         this.showValue = this.showValue.bind(this);
 
+        this.decimals = this.props.decimals ? this.props.decimals : 0;
+
         this.state = {
-            shownValue : null,
+            shownValue : 0,
             shownPosition: 1,
         }
     }
@@ -139,11 +187,13 @@ class LineChart extends Component {
             return null;
         }
 
+
         let maxValue = Math.max(...this.props.values),
             lineCoordinates = this.formatValuesForLine(),
-            fillCoordinates = [0, 100, ...lineCoordinates, 100, maxValue],
+            fillCoordinates = [0, maxValue, ...lineCoordinates, 100, maxValue],
             dotCoordinates = this.formatValuesForDots(),
-            hoverWidth = 110 / dotCoordinates.length;
+            hoverWidth = 110 / dotCoordinates.length,
+            axisCoordinates = this.formatCoordinatesForAxis();
 
         return (
             <Container>
@@ -155,7 +205,7 @@ class LineChart extends Component {
                             y = coordinates[1];
                         return (
                             <g key={x}>
-                                <HoverElement x={x - hoverWidth / 2 } y={0} width={hoverWidth} height={maxValue}
+                                <HoverElement x={x - hoverWidth / 2 } y={0} width={hoverWidth*0.8} height={maxValue}
                                               onMouseEnter={() => {this.showValue(maxValue - y, x)}}
                                               onMouseLeave={() => {this.showValue(null, null)}}
                                 />
@@ -166,8 +216,31 @@ class LineChart extends Component {
                             </g>
                         )
                     })}
+
                 </ChartContainer>
-                <Value style={{right: this.state.shownPosition + "%",}}>{this.state.shownValue}</Value>
+
+                { axisCoordinates.length
+                    ? (
+                        <AxisLine>
+                            { axisCoordinates.map((axis) => {
+                                return (
+                                    <AxisPoint key={axis.x}>
+                                        <AxisValue>{axis.label}</AxisValue>
+                                    </AxisPoint>
+                                )
+                            })}
+                        </AxisLine>
+                    ) : null
+                }
+
+                { this.state.shownValue !== null
+                    ? (
+                        <Value style={{right: this.state.shownPosition + "%",}}>
+                            {this.props.prefix} {formatNumber(this.state.shownValue, this.decimals)} {this.props.postfix}
+                        </Value>
+                    ) : null
+                }
+
             </Container>
         )
     }
@@ -194,17 +267,37 @@ class LineChart extends Component {
         }
 
         let values = [],
-            maxValue = Math.max(...this.props.values),
+            maxValue = Math.max(0, ...this.props.values),
             step = 100 / (this.props.values.length - 1);
 
         for (let i = 0; i < this.props.values.length; i++) {
             values.push(i*step);
-            values.push(maxValue - this.props.values[i]);
+            values.push(Math.min(maxValue, (maxValue - this.props.values[i])));
         }
 
         return values;
     }
 
+    /**
+     *
+     * @returns {Array}
+     */
+    formatCoordinatesForAxis() {
+
+        if (!this.props.axis) {
+            return [];
+        }
+
+        let values = [],
+            step = 100 / (this.props.axis.length - 1);
+
+        for (let i = 0; i < this.props.axis.length; i++) {
+            values.push({x: i*step, label: this.props.axis[i]});
+        }
+
+        return values;
+
+    }
     /**
      * @returns {Array}
      */
@@ -219,7 +312,7 @@ class LineChart extends Component {
             step = 100 / (this.props.values.length - 1);
 
         for (let i = 0; i < this.props.values.length; i++) {
-            values.push([i*step, maxValue - this.props.values[i]]);
+            values.push([i*step, Math.min(maxValue,maxValue - this.props.values[i])]);
         }
 
         return values;
