@@ -1,3 +1,5 @@
+Circle chart component 
+
 ```jsx
 import Graph from "./CircleChart";
 
