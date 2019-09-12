@@ -2,167 +2,8 @@ import React, { Component } from 'react';
 import { colors, lightColors, spacings } from 'config/styles.js';
 import { PopIn } from 'config/Keyframes.js';
 import formatNumber from "helpers/NumberFormatter";
+import ColorChanger from 'helpers/ColorChanger';
 import styled from "styled-components";
-
-const Container = styled.div`
-    display: block;
-    padding: ${spacings.large} 0 0 0;
-    position: relative;
-`;
-
-const ChartContainer = styled.svg`
-    display : block;
-    overflow: visible;
-    height: 150px;
-    width: 100%;
-    position: relative;
-`;
-
-const HoverElement = styled.rect`
-  fill: transparent;
-  vector-effect: non-scaling-stroke;
-`;
-
-const BlueDot = styled.line`
-  stroke-width : 6px;
-  stroke: ${colors.interactive};
-  transition: stroke-width 300ms;
-  pointer-events : none;
-  vector-effect: non-scaling-stroke;
-  stroke-linecap: round;
-   
-  ${HoverElement}:hover ~ & {
-    stroke-width : 10px; 
-  }
-`;
-
-const LightBlueDot = styled.line`
-  stroke-width : 0;
-  stroke: ${lightColors.interactive};
-  transition: stroke-width 300ms, stroke 300ms;
-  pointer-events : none;
-  vector-effect: non-scaling-stroke;
-  stroke-linecap: round;
-   
-  ${HoverElement}:hover ~ & {
-    stroke-width : 6px; 
-  }
-`;
-
-const TopLine = styled.line`
-  stroke-width : 2px;
-  stroke: ${colors.interactive};
-  opacity: 0.2;
-  vector-effect: non-scaling-stroke;
-  pointer-events : none;
-`;
-
-const BottomLine = styled.line`
-  stroke-width : 0;
-  stroke: transparent;
-  pointer-events : none;
-  vector-effect: non-scaling-stroke;
-  transition: stroke-width 100ms;
-  
-  ${HoverElement}:hover ~ & {
-  stroke-width : 2px;
-    stroke: ${colors.interactive}; 
-  }
-`;
-
-const AxisLine = styled.div`
-  display: flex;
-  flex-flow: row nowrap;
-  border-top : 2px solid ${colors.dark}; 
-`;
-
-const AxisPoint = styled.div`
-  flex: 1 1 auto;
-  border-left : 2px solid ${colors.dark}; 
-  pointer-events : none;
-  overflow: visible;
-  position: relative;
-  height: 10px;
-  
-  &:last-child {
-    width: 0;
-    flex: 0 0 0; 
-  }
-`;
-
-const AxisValue = styled.div`
-  top: 12px;
-  left: 0;
-  position: absolute;
-  color : ${colors.dark};
-  font-family : sans-serif;
-  font-size : 12px;
-  font-weight: lighter;
-  text-align: center;
-  min-width: 100px;
-  transform:translate(-50%,0);
-
-  ${AxisPoint}:last-child & {
-    text-align: right;
-    transform:translate(-100%,0);
-  }
-
-  ${AxisPoint}:first-child & {
-    text-align: left;
-    transform:translate(0,0);
-  }
-`;
-
-const Value = styled.span`
-  display: inline-block;
-  font-size : 12px;
-  color : ${colors.white};
-  font-family : sans-serif;
-  font-weight: lighter;
-  position: absolute;
-  top: 12px;
-  transform: translate(50%,-${spacings.small});
-  background: ${colors.interactive};
-  padding: ${spacings.tiny} ${spacings.small};
-  border-radius: ${spacings.tiny};
-  opacity: 0;
-  transition: opacity 200ms;
-  
-  animation: ${PopIn} 200ms ease-out;
-  
-  &:not(:empty) {
-    opacity: 1;
-    
-    &:after {
-        content: '';
-        position: absolute;
-        top: 100%;
-        left: 50%;
-        border-left: 4px solid transparent;
-        border-right: 4px solid transparent;
-        border-top: 4px solid ${colors.interactive};
-        transform: translate(-50%, 0);
-    }
-  }
-`;
-
-const ChartFill = styled.polyline`
-  vector-effect: non-scaling-stroke;
-  pointer-events : none;
-  fill : ${colors.interactive};
-  stroke: ${colors.interactive};
-  opacity: 0.2;
-  stroke-width: 2;
-`;
-
-const ChartLine = styled.polyline`
-  vector-effect: non-scaling-stroke;
-  pointer-events : none;
-  fill : none;
-  stroke: ${colors.interactive};
-  stroke-width: 2;
-`;
-
 
 class LineChart extends Component {
 
@@ -171,6 +12,12 @@ class LineChart extends Component {
 
         this.formatValuesForLine = this.formatValuesForLine.bind(this);
         this.formatValuesForDots = this.formatValuesForDots.bind(this);
+        this.lineCommand = this.lineCommand.bind(this);
+        this.bezierCommand = this.bezierCommand.bind(this);
+        this.controlPoint = this.controlPoint.bind(this);
+        this.line = this.line.bind(this);
+        this.formatCoordinatesAsPair = this.formatCoordinatesAsPair.bind(this);
+
         this.showValue = this.showValue.bind(this);
 
         this.decimals = this.props.decimals ? this.props.decimals : 0;
@@ -187,19 +34,198 @@ class LineChart extends Component {
             return null;
         }
 
-
+        // Calculate svg coordinates
         let maxValue = Math.max(...this.props.values),
             lineCoordinates = this.formatValuesForLine(),
+            pathCoordinates = this.formatValuesForPath(this.bezierCommand),
             fillCoordinates = [0, maxValue, ...lineCoordinates, 100, maxValue],
             dotCoordinates = this.formatValuesForDots(),
             hoverWidth = 110 / dotCoordinates.length,
             axisCoordinates = this.formatCoordinatesForAxis();
 
+        // Override colors
+        let uiColor = this.props.color ? this.props.color : colors.interactive,
+            darkerColor = ColorChanger.darkenColor(uiColor, 0.2),
+            lighterColor = ColorChanger.lightenColor(uiColor, 0.1),
+            contrastColor = ColorChanger.getBlackOrWhiteContrastColor(uiColor);
+
+        const Container = styled.div`
+            display: block;
+            padding: ${spacings.large} 0 0 0;
+            position: relative;
+        `;
+
+        const ChartContainer = styled.svg`
+            display : block;
+            overflow: visible;
+            height: 150px;
+            width: 100%;
+            position: relative;
+        `;
+
+        const HoverElement = styled.rect`
+          fill: transparent;
+          vector-effect: non-scaling-stroke;
+        `;
+
+        const BlueDot = styled.line`
+          stroke-width : 6px;
+          stroke: ${uiColor};
+          transition: stroke-width 300ms;
+          pointer-events : none;
+          vector-effect: non-scaling-stroke;
+          stroke-linecap: round;
+           
+          ${HoverElement}:hover ~ & {
+            stroke-width : 10px; 
+          }
+        `;
+
+        const LightBlueDot = styled.line`
+          stroke-width : 0;
+          stroke: ${lighterColor};
+          transition: stroke-width 300ms, stroke 300ms;
+          pointer-events : none;
+          vector-effect: non-scaling-stroke;
+          stroke-linecap: round;
+           
+          ${HoverElement}:hover ~ & {
+            stroke-width : 6px; 
+          }
+        `;
+
+        const TopLine = styled.line`
+          stroke-width : 2px;
+          stroke: ${uiColor};
+          opacity: 0.2;
+          vector-effect: non-scaling-stroke;
+          pointer-events : none;
+        `;
+
+        const BottomLine = styled.line`
+          stroke-width : 0;
+          stroke: transparent;
+          pointer-events : none;
+          vector-effect: non-scaling-stroke;
+          transition: stroke-width 100ms;
+          
+          ${HoverElement}:hover ~ & {
+          stroke-width : 2px;
+            stroke: ${uiColor}; 
+          }
+        `;
+
+        const AxisLine = styled.div`
+          display: flex;
+          flex-flow: row nowrap;
+          border-top : 2px solid ${darkerColor}; 
+        `;
+
+        const AxisPoint = styled.div`
+          flex: 1 1 auto;
+          border-left : 2px solid ${darkerColor}; 
+          pointer-events : none;
+          overflow: visible;
+          position: relative;
+          height: 10px;
+          
+          &:last-child {
+            width: 0;
+            flex: 0 0 0; 
+          }
+        `;
+
+        const AxisValue = styled.div`
+          top: 12px;
+          left: 0;
+          position: absolute;
+          color : ${darkerColor};
+          font-family : sans-serif;
+          font-size : 12px;
+          font-weight: lighter;
+          text-align: center;
+          min-width: 100px;
+          transform:translate(-50%,0);
+        
+          ${AxisPoint}:last-child & {
+            text-align: right;
+            transform:translate(-100%,0);
+          }
+        
+          ${AxisPoint}:first-child & {
+            text-align: left;
+            transform:translate(0,0);
+          }
+        `;
+
+        const Value = styled.span`
+          display: inline-block;
+          font-size : 12px;
+          color : ${contrastColor};
+          font-family : sans-serif;
+          font-weight: lighter;
+          position: absolute;
+          top: 12px;
+          transform: translate(50%,-${spacings.small});
+          background: ${uiColor};
+          padding: ${spacings.tiny} ${spacings.small};
+          border-radius: ${spacings.tiny};
+          opacity: 0;
+          transition: opacity 200ms;
+          
+          animation: ${PopIn} 200ms ease-out;
+          
+          &:not(:empty) {
+            opacity: 1;
+            
+            &:after {
+                content: '';
+                position: absolute;
+                top: 100%;
+                left: 50%;
+                border-left: 4px solid transparent;
+                border-right: 4px solid transparent;
+                border-top: 4px solid${uiColor};
+                transform: translate(-50%, 0);
+            }
+          }
+        `;
+
+        const ChartFill = styled.polyline`
+          vector-effect: non-scaling-stroke;
+          pointer-events : none;
+          fill : ${uiColor};
+          stroke: ${uiColor};
+          opacity: 0.2;
+          stroke-width: 2;
+        `;
+
+        const ChartLine = styled.polyline`
+          vector-effect: non-scaling-stroke;
+          pointer-events : none;
+          fill : none;
+          stroke: ${uiColor};
+          stroke-width: 2;
+        `;
+
+        const ChartPath = styled.path`
+          vector-effect: non-scaling-stroke;
+          pointer-events : none;
+          fill : none;
+          stroke: ${uiColor};
+          stroke-width: 2;
+        `;
+
+        console.log('render');
+
         return (
             <Container>
                 <ChartContainer preserveAspectRatio="none" viewBox={"0 0 100 " + maxValue}>
                     <ChartFill points={fillCoordinates.join(',')}/>
-                    <ChartLine points={lineCoordinates.join(',')}/>
+                    {/*<ChartLine points={lineCoordinates.join(',')}/>*/}
+
+                    <ChartPath d={pathCoordinates} fill="none" stroke="grey" />
+
                     { dotCoordinates.map((coordinates) => {
                         let x = coordinates[0],
                             y = coordinates[1];
@@ -276,6 +302,104 @@ class LineChart extends Component {
         }
 
         return values;
+    }
+
+    /**
+     * @returns {Array}
+     */
+    formatCoordinatesAsPair() {
+
+        if (this.props.values.length < 2) {
+            return [];
+        }
+
+        let coordinates = [],
+            maxValue = Math.max(0, ...this.props.values),
+            step = 100 / (this.props.values.length - 1);
+
+        for (let i = 0; i < this.props.values.length; i++) {
+            coordinates.push([i*step, Math.min(maxValue, (maxValue - this.props.values[i]))]);
+        }
+
+        return coordinates;
+
+    }
+
+    /**
+     * @param {function} command
+     *
+     * @returns {Array}
+     */
+    formatValuesForPath(command) {
+
+        let coordinates = this.formatCoordinatesAsPair();
+
+        // build the d attributes by looping over the points
+        return coordinates.reduce((acc, point, i, a) => i === 0
+            // if first point
+            ? `M ${point[0]},${point[1]}`
+            // else
+            : `${acc} ${command(point, i, a)}`
+            , '');
+    }
+
+    /**
+     * @param {Array} point
+     *
+     * @return {string}
+     */
+    lineCommand(point) {
+        return `L ${point[0]} ${point[1]}`;
+    }
+
+    bezierCommand(point, i, a) {
+        // start control point
+        const [cpsX, cpsY] = this.controlPoint(a[i - 1], a[i - 2], point);
+        // end control point
+        const [cpeX, cpeY] = this.controlPoint(point, a[i - 1], a[i + 1], true);
+        return `C ${cpsX},${cpsY} ${cpeX},${cpeY} ${point[0]},${point[1]}`;
+    }
+
+    /**
+     *
+     * @param {Array} pointA
+     * @param {Array} pointB
+     * @return {{length: number, angle: number}}
+     */
+    line(pointA, pointB) {
+        const lengthX = pointB[0] - pointA[0];
+        const lengthY = pointB[1] - pointA[1];
+        return {
+            length: Math.sqrt(Math.pow(lengthX, 2) + Math.pow(lengthY, 2)),
+            angle: Math.atan2(lengthY, lengthX)
+        }
+    }
+
+    /**
+     * @param current
+     * @param previous
+     * @param next
+     * @param reverse
+     *
+     * @return {Array}
+     */
+    controlPoint(current, previous, next, reverse) {
+        // When 'current' is the first or last point of the array
+        // 'previous' or 'next' don't exist.
+        // Replace with 'current'
+        const p = previous || current;
+        const n = next || current;
+        // The smoothing ratio
+        const smoothing = 0.2;
+        // Properties of the opposed-line
+        const o = this.line(p, n);
+        // If is end-control-point, add PI to the angle to go backward
+        const angle = o.angle + (reverse ? Math.PI : 0);
+        const length = o.length * smoothing;
+        // The control point position is relative to the current point
+        const x = current[0] + Math.cos(angle) * length;
+        const y = current[1] + Math.sin(angle) * length;
+        return [x, y];
     }
 
     /**
