@@ -1,5 +1,5 @@
-import styled, { keyframes } from 'styled-components';
-import { colors, lightColors, spacings } from 'config/styles.js';
+import { keyframes } from 'styled-components';
+import { spacings } from 'config/styles';
 
 export const PopIn = keyframes`
   0% {

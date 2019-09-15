@@ -5,7 +5,7 @@ import Button from "components/Button";
 describe("Button", () => {
 
     test("should display text", () => {
-        const { container } = render(<Button text="We Salute You!" />);
+        const { container } = render(<Button text={"We Salute You!"} />);
 
         getByText(container, "We Salute You!");
     });

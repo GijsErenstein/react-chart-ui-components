@@ -37,7 +37,7 @@ class Button extends Component {
             }
         `;
 
-        return <StyledButton {...this.props}>{this.props.text}</StyledButton>;
+        return <StyledButton { ...this.props }>{this.props.text}</StyledButton>;
     }
 
 }

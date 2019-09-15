@@ -215,7 +215,7 @@ class LineChart extends Component {
 
         return (
             <Container>
-                <ChartContainer preserveAspectRatio="none" viewBox={"0 0 100 " + maxValue}>
+                <ChartContainer preserveAspectRatio={"none"} viewBox={"0 0 100 " + maxValue}>
                     <ChartPath d={pathCoordinates} />
                     <ChartFill d={fillCoordinates} />
 
