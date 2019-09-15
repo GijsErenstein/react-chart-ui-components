@@ -1,14 +1,14 @@
 A LineChart element
 
 ```jsx
-import LineChart from "./LineChart";
+import { LineChart } from "graph-ui-components";
 
-<LineChart decimals={2} prefix={'€'} postfix={'per user'} 
+<LineChart decimals={2} prefix={'€'} postfix={'per user'} rounded={true} 
            values={[8.6,10.2,50.333,100.000001,70,80.542,20,15,34,64,73,45,23]} />
 ```
 
 ```jsx
-import LineChart from "./LineChart";
+import { LineChart } from "graph-ui-components";
 
 let values = [];
 

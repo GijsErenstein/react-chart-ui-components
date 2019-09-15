@@ -11,9 +11,8 @@ class LineChart extends Component {
         super(props);
 
         this.formatValuesForLine = this.formatValuesForLine.bind(this);
-        this.formatValuesForDots = this.formatValuesForDots.bind(this);
-        this.lineCommand = this.lineCommand.bind(this);
-        this.bezierCommand = this.bezierCommand.bind(this);
+        this.lineStrategy = this.lineStrategy.bind(this);
+        this.bezierStrategy = this.bezierStrategy.bind(this);
         this.controlPoint = this.controlPoint.bind(this);
         this.line = this.line.bind(this);
         this.formatCoordinatesAsPair = this.formatCoordinatesAsPair.bind(this);
@@ -33,15 +32,6 @@ class LineChart extends Component {
         if (!this.props.values) {
             return null;
         }
-
-        // Calculate svg coordinates
-        let maxValue = Math.max(...this.props.values),
-            lineCoordinates = this.formatValuesForLine(),
-            pathCoordinates = this.formatValuesForPath(this.bezierCommand),
-            fillCoordinates = [0, maxValue, ...lineCoordinates, 100, maxValue],
-            dotCoordinates = this.formatValuesForDots(),
-            hoverWidth = 110 / dotCoordinates.length,
-            axisCoordinates = this.formatCoordinatesForAxis();
 
         // Override colors
         let uiColor = this.props.color ? this.props.color : colors.interactive,
@@ -191,7 +181,7 @@ class LineChart extends Component {
           }
         `;
 
-        const ChartFill = styled.polyline`
+        const ChartFill = styled.path`
           vector-effect: non-scaling-stroke;
           pointer-events : none;
           fill : ${uiColor};
@@ -200,13 +190,6 @@ class LineChart extends Component {
           stroke-width: 2;
         `;
 
-        const ChartLine = styled.polyline`
-          vector-effect: non-scaling-stroke;
-          pointer-events : none;
-          fill : none;
-          stroke: ${uiColor};
-          stroke-width: 2;
-        `;
 
         const ChartPath = styled.path`
           vector-effect: non-scaling-stroke;
@@ -216,15 +199,25 @@ class LineChart extends Component {
           stroke-width: 2;
         `;
 
-        console.log('render');
+        // Calculate svg coordinates
+        let maxValue = Math.max(...this.props.values),
+
+            // Build the paths for rounder or straight lines,
+            // instructions used from:
+            // https://medium.com/@francoisromain/smooth-a-svg-path-with-cubic-bezier-curves-e37b49d46c74
+            strategy = this.props.rounded ? this.bezierStrategy : this.lineStrategy,
+            pathCoordinates = this.formatValuesForLine(strategy),
+            fillCoordinates = this.formatValuesForFill(strategy),
+
+            dotCoordinates = this.formatCoordinatesAsPair(),
+            hoverWidth = 110 / dotCoordinates.length,
+            axisCoordinates = this.formatCoordinatesForAxis();
 
         return (
             <Container>
                 <ChartContainer preserveAspectRatio="none" viewBox={"0 0 100 " + maxValue}>
-                    <ChartFill points={fillCoordinates.join(',')}/>
-                    {/*<ChartLine points={lineCoordinates.join(',')}/>*/}
-
-                    <ChartPath d={pathCoordinates} fill="none" stroke="grey" />
+                    <ChartPath d={pathCoordinates} />
+                    <ChartFill d={fillCoordinates} />
 
                     { dotCoordinates.map((coordinates) => {
                         let x = coordinates[0],
@@ -286,27 +279,6 @@ class LineChart extends Component {
     /**
      * @returns {Array}
      */
-    formatValuesForLine() {
-
-        if (this.props.values.length < 2) {
-            return [];
-        }
-
-        let values = [],
-            maxValue = Math.max(0, ...this.props.values),
-            step = 100 / (this.props.values.length - 1);
-
-        for (let i = 0; i < this.props.values.length; i++) {
-            values.push(i*step);
-            values.push(Math.min(maxValue, (maxValue - this.props.values[i])));
-        }
-
-        return values;
-    }
-
-    /**
-     * @returns {Array}
-     */
     formatCoordinatesAsPair() {
 
         if (this.props.values.length < 2) {
@@ -323,83 +295,6 @@ class LineChart extends Component {
 
         return coordinates;
 
-    }
-
-    /**
-     * @param {function} command
-     *
-     * @returns {Array}
-     */
-    formatValuesForPath(command) {
-
-        let coordinates = this.formatCoordinatesAsPair();
-
-        // build the d attributes by looping over the points
-        return coordinates.reduce((acc, point, i, a) => i === 0
-            // if first point
-            ? `M ${point[0]},${point[1]}`
-            // else
-            : `${acc} ${command(point, i, a)}`
-            , '');
-    }
-
-    /**
-     * @param {Array} point
-     *
-     * @return {string}
-     */
-    lineCommand(point) {
-        return `L ${point[0]} ${point[1]}`;
-    }
-
-    bezierCommand(point, i, a) {
-        // start control point
-        const [cpsX, cpsY] = this.controlPoint(a[i - 1], a[i - 2], point);
-        // end control point
-        const [cpeX, cpeY] = this.controlPoint(point, a[i - 1], a[i + 1], true);
-        return `C ${cpsX},${cpsY} ${cpeX},${cpeY} ${point[0]},${point[1]}`;
-    }
-
-    /**
-     *
-     * @param {Array} pointA
-     * @param {Array} pointB
-     * @return {{length: number, angle: number}}
-     */
-    line(pointA, pointB) {
-        const lengthX = pointB[0] - pointA[0];
-        const lengthY = pointB[1] - pointA[1];
-        return {
-            length: Math.sqrt(Math.pow(lengthX, 2) + Math.pow(lengthY, 2)),
-            angle: Math.atan2(lengthY, lengthX)
-        }
-    }
-
-    /**
-     * @param current
-     * @param previous
-     * @param next
-     * @param reverse
-     *
-     * @return {Array}
-     */
-    controlPoint(current, previous, next, reverse) {
-        // When 'current' is the first or last point of the array
-        // 'previous' or 'next' don't exist.
-        // Replace with 'current'
-        const p = previous || current;
-        const n = next || current;
-        // The smoothing ratio
-        const smoothing = 0.2;
-        // Properties of the opposed-line
-        const o = this.line(p, n);
-        // If is end-control-point, add PI to the angle to go backward
-        const angle = o.angle + (reverse ? Math.PI : 0);
-        const length = o.length * smoothing;
-        // The control point position is relative to the current point
-        const x = current[0] + Math.cos(angle) * length;
-        const y = current[1] + Math.sin(angle) * length;
-        return [x, y];
     }
 
     /**
@@ -422,24 +317,118 @@ class LineChart extends Component {
         return values;
 
     }
+
     /**
+     * @param {function} command
+     *
      * @returns {Array}
      */
-    formatValuesForDots() {
+    formatValuesForLine(command) {
 
-        if (this.props.values.length < 2) {
-            return [];
+        let coordinates = this.formatCoordinatesAsPair();
+
+        // build the d attributes by looping over the points
+        return coordinates.reduce((acc, point, i, a) => i === 0
+            // if first point
+            ? `M ${point[0]},${point[1]}`
+            // else
+            : `${acc} ${command(point, i, a)}`
+            , '');
+    }
+
+    /**
+     * @param {function} command
+     *
+     * @returns {Array}
+     */
+    formatValuesForFill(command) {
+
+        let coordinates = this.formatCoordinatesAsPair(),
+            fillCoordinates = [
+                [0, Math.max(...this.props.values)],
+                ...coordinates,
+                [100, Math.max(...this.props.values)]
+            ];
+
+        return fillCoordinates.reduce((acc, point, i, a) => {
+
+            if ( i === 0 ) {
+                return `M ${point[0]},${point[1]}`
+            }
+
+            if ( i === 1 || i === fillCoordinates.length - 1) {
+                return `${acc} ${this.lineStrategy(point)}`
+            }
+
+            return `${acc} ${command(point, i, a)}`
+
+            }, ''
+        );
+    }
+
+    /**
+     * @param {Array} point
+     *
+     * @return {string}
+     */
+    lineStrategy(point) {
+        return `L ${point[0]} ${point[1]}`;
+    }
+
+    /**
+     * @param {Array} point
+     * @param {int} i
+     * @param {Array} a
+     *
+     * @returns {string}
+     */
+    bezierStrategy(point, i, a) {
+        // start control point
+        const [cpsX, cpsY] = this.controlPoint(a[i - 1], a[i - 2], point);
+        // end control point
+        const [cpeX, cpeY] = this.controlPoint(point, a[i - 1], a[i + 1], true);
+        return `C ${cpsX},${cpsY} ${cpeX},${cpeY} ${point[0]},${point[1]}`;
+    }
+
+    /**
+     * @param {Array} pointA
+     * @param {Array} pointB
+     *
+     * @return {{length: number, angle: number}}
+     */
+    line(pointA, pointB) {
+        const lengthX = pointB[0] - pointA[0];
+        const lengthY = pointB[1] - pointA[1];
+        return {
+            length: Math.sqrt(Math.pow(lengthX, 2) + Math.pow(lengthY, 2)),
+            angle: Math.atan2(lengthY, lengthX)
         }
+    }
 
-        let values = [],
-            maxValue = Math.max(...this.props.values),
-            step = 100 / (this.props.values.length - 1);
-
-        for (let i = 0; i < this.props.values.length; i++) {
-            values.push([i*step, Math.min(maxValue,maxValue - this.props.values[i])]);
-        }
-
-        return values;
+    /**
+     * @param current
+     * @param previous
+     * @param next
+     * @param reverse
+     *
+     * @see https://medium.com/@francoisromain/smooth-a-svg-path-with-cubic-bezier-curves-e37b49d46c74
+     *
+     * @return {Array}
+     */
+    controlPoint(current, previous, next, reverse) {
+        const p = previous || current;
+        const n = next || current;
+        // The smoothing ratio
+        const smoothing = 0.15;
+        // Properties of the opposed-line
+        const o = this.line(p, n);
+        // If is end-control-point, add PI to the angle to go backward
+        const angle = o.angle + (reverse ? Math.PI : 0);
+        const length = o.length * smoothing;
+        // The control point position is relative to the current point
+        const x = current[0] + Math.cos(angle) * length;
+        const y = current[1] + Math.sin(angle) * length;
+        return [x, y];
     }
 }
 

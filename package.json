@@ -15,7 +15,8 @@
   "scripts": {
     "test": "jest",
     "start": "styleguidist server",
-    "build": "rollup -c"
+    "build": "rollup -c",
+    "docs:build": "styleguidist build"
   },
   "keywords": [
     "react",

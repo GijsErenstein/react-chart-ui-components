@@ -1,3 +1,5 @@
+const path = require("path");
+
 module.exports = {
     webpackConfig: {
         module: {
@@ -10,4 +12,9 @@ module.exports = {
             ]
         }
     },
+    title: "React Sample Components Library",
+    styleguideDir: "dist-docs",
+    moduleAliases: {
+        "graph-ui-components": path.resolve(__dirname, "src")
+    }
 };

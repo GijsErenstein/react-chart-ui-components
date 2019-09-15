@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { colors, lighterColors, darkerColors, spacings } from 'config/styles.js';
+import { colors, spacings } from 'config/styles.js';
 import styled from 'styled-components';
 import ColorChanger from 'helpers/ColorChanger';
 
