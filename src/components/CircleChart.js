@@ -1,27 +1,17 @@
-import React, { Component } from 'react';
+import React from 'react';
 import styled from "styled-components";
 import formatNumber from "helpers/NumberFormatter";
 import { colors, spacings } from 'config/styles';
 
-class CircleChart extends Component {
-
-    constructor(props) {
-        super(props);
-    }
-
-    render() {
-
-        let initialValue = this.props.value ? this.props.value : 0,
-            maxValue = this.props.maxValue ? this.props.maxValue : 0,
-            percentage = (initialValue / maxValue ) * 100,
-            value = formatNumber(initialValue, this.props.decimals);
-
-        let uiColor = this.props.color ? this.props.color : colors.interactive;
+function CircleChart({value = 0, maxValue = 0, decimals = 2, color = colors.interactive, metric = null, prefix = null, postfix = null, ...props}) {
+    
+        let percentage = (value / maxValue ) * 100,
+            formattedValue = formatNumber(value, decimals);
 
         const CircleValue = styled.circle`
             stroke-width: 2px;
             fill: none;
-            stroke: ${uiColor};
+            stroke: ${color};
             //stroke-linecap: round;
             transform: rotate(-90deg);
             transform-origin: center;
@@ -40,7 +30,7 @@ class CircleChart extends Component {
             text-align: center;
             top: 40px;
             font-size: ${spacings.large};
-            color: ${uiColor};
+            color: ${color};
             font-family : sans-serif;
             width: 150px;
         `;
@@ -51,14 +41,14 @@ class CircleChart extends Component {
             text-align: center;
             top: 80px;
             font-size: ${spacings.medium};
-            color: ${uiColor};
+            color: ${color};
             font-family : sans-serif;
             width: 150px;
         `;
 
         const ValueAddition = styled.span`
             font-size: ${spacings.medium};
-            color: ${uiColor};
+            color: ${color};
             font-family : sans-serif;
         `;
 
@@ -72,7 +62,7 @@ class CircleChart extends Component {
         const CircleBackground = styled.circle`
             stroke-width: 2px;
             fill: none;
-            stroke: ${uiColor};
+            stroke: ${color};
             opacity: 0.2;
         `;
 
@@ -91,14 +81,12 @@ class CircleChart extends Component {
                             r="15.91549431"/>
                 </ChartContainer>
                 <Value>
-                    <ValueAddition>{this.props.prefix}</ValueAddition>
-                    {value}
-                    <ValueAddition>{this.props.postfix}</ValueAddition>
+                    <ValueAddition>{prefix}</ValueAddition>{formattedValue}<ValueAddition>{postfix}</ValueAddition>
                 </Value>
-                <Metric>{this.props.metric}</Metric>
+                <Metric>{metric}</Metric>
             </Container>
         )
-    }
+
 }
 
 export default CircleChart;
