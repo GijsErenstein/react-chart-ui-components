@@ -46,7 +46,7 @@ class ColorChanger {
      * @param   {number}  r       The red color value
      * @param   {number}  g       The green color value
      * @param   {number}  b       The blue color value
-   * 
+   *
      * @return  {Array}           The HSL representation
      */
   static rgbToHsl(r, g, b) {

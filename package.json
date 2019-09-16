@@ -5,7 +5,7 @@
   "main": "lib/index.js",
   "browser": "lib/index.umd.js",
   "module": "lib/index.es.js",
-  "version": "1.0.11",
+  "version": "1.0.12",
   "description": "Lightweight react chart components",
   "files": [
     "/lib",

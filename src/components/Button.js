@@ -1,23 +1,15 @@
-import React, { Component } from 'react';
+import React from 'react';
 import { colors, spacings } from 'config/styles.js';
 import styled from 'styled-components';
 import ColorChanger from 'helpers/ColorChanger';
 
-class Button extends Component {
+function Button({text = "Submit", color = colors.interactive, ...restProps}) {
 
-    constructor(props) {
-        super(props);
-    }
-
-    render() {
-
-        // Override colors
-        let uiColor = this.props.color ? this.props.color : colors.interactive,
-            lighterColor = ColorChanger.lightenColor(uiColor, 0.1),
-            contrastColor = ColorChanger.getBlackOrWhiteContrastColor(uiColor);
+        let lighterColor = ColorChanger.lightenColor(color, 0.1),
+            contrastColor = ColorChanger.getBlackOrWhiteContrastColor(color);
 
         const StyledButton = styled.button`
-            background-color: ${uiColor};
+            background-color: ${color};
             color: ${contrastColor};
             border-radius: ${spacings.tiny};
             line-height: ${spacings.large};
@@ -37,8 +29,7 @@ class Button extends Component {
             }
         `;
 
-        return <StyledButton { ...this.props }>{this.props.text}</StyledButton>;
-    }
+        return <StyledButton { ...restProps }>{text}</StyledButton>;
 
 }
 
