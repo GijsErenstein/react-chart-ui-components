@@ -4,7 +4,7 @@ import formatNumber from "helpers/NumberFormatter";
 import { colors, spacings } from 'config/styles';
 
 function CircleChart({value = 0, maxValue = 0, decimals = 2, color = colors.interactive, metric = null, prefix = null, postfix = null, ...props}) {
-    
+
         let percentage = (value / maxValue ) * 100,
             formattedValue = formatNumber(value, decimals);
 

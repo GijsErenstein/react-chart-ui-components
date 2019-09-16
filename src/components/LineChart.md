@@ -16,7 +16,7 @@ let values = [];
         values.push((Math.random() * (Math.sin(0.01*i) + 1) * (i*i)));
     }
 
-<LineChart decimals={2} 
+<LineChart decimals={0} 
            color={'#4392F1'}
            prefix={'€'} 
            postfix={'per user'} 

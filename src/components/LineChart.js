@@ -15,11 +15,7 @@ class LineChart extends Component {
         this.bezierStrategy = this.bezierStrategy.bind(this);
         this.controlPoint = this.controlPoint.bind(this);
         this.line = this.line.bind(this);
-        this.formatCoordinatesAsPair = this.formatCoordinatesAsPair.bind(this);
-
         this.showValue = this.showValue.bind(this);
-
-        this.decimals = this.props.decimals ? this.props.decimals : 0;
 
         this.state = {
             shownValue : 0,
@@ -29,15 +25,20 @@ class LineChart extends Component {
 
     render() {
 
-        if (!this.props.values) {
-            return null;
-        }
+        const { decimals = 2,
+            color = colors.interactive,
+            rounded = false,
+            values = [],
+            axis = [],
+            prefix = null,
+            postfix = null,
+            ...restProps
+        } = this.props;
 
-        // Override colors
-        let uiColor = this.props.color ? this.props.color : colors.interactive,
-            darkerColor = ColorChanger.darkenColor(uiColor, 0.2),
-            lighterColor = ColorChanger.lightenColor(uiColor, 0.1),
-            contrastColor = ColorChanger.getBlackOrWhiteContrastColor(uiColor);
+        // create colors
+        let darkerColor = ColorChanger.darkenColor(color, 0.2),
+            lighterColor = ColorChanger.lightenColor(color, 0.1),
+            contrastColor = ColorChanger.getBlackOrWhiteContrastColor(color);
 
         const Container = styled.div`
             display: block;
@@ -60,7 +61,7 @@ class LineChart extends Component {
 
         const BlueDot = styled.line`
           stroke-width : 6px;
-          stroke: ${uiColor};
+          stroke: ${color};
           transition: stroke-width 300ms;
           pointer-events : none;
           vector-effect: non-scaling-stroke;
@@ -86,7 +87,7 @@ class LineChart extends Component {
 
         const TopLine = styled.line`
           stroke-width : 2px;
-          stroke: ${uiColor};
+          stroke: ${color};
           opacity: 0.2;
           vector-effect: non-scaling-stroke;
           pointer-events : none;
@@ -101,7 +102,7 @@ class LineChart extends Component {
           
           ${HoverElement}:hover ~ & {
           stroke-width : 2px;
-            stroke: ${uiColor}; 
+            stroke: ${color}; 
           }
         `;
 
@@ -157,7 +158,7 @@ class LineChart extends Component {
           position: absolute;
           top: 12px;
           transform: translate(50%,-${spacings.small});
-          background: ${uiColor};
+          background: ${color};
           padding: ${spacings.tiny} ${spacings.small};
           border-radius: ${spacings.tiny};
           opacity: 0;
@@ -175,7 +176,7 @@ class LineChart extends Component {
                 left: 50%;
                 border-left: 4px solid transparent;
                 border-right: 4px solid transparent;
-                border-top: 4px solid${uiColor};
+                border-top: 4px solid ${color};
                 transform: translate(-50%, 0);
             }
           }
@@ -184,34 +185,33 @@ class LineChart extends Component {
         const ChartFill = styled.path`
           vector-effect: non-scaling-stroke;
           pointer-events : none;
-          fill : ${uiColor};
-          stroke: ${uiColor};
+          fill : ${color};
+          stroke: ${color};
           opacity: 0.2;
           stroke-width: 2;
         `;
-
 
         const ChartPath = styled.path`
           vector-effect: non-scaling-stroke;
           pointer-events : none;
           fill : none;
-          stroke: ${uiColor};
+          stroke: ${color};
           stroke-width: 2;
         `;
 
         // Calculate svg coordinates
-        let maxValue = Math.max(...this.props.values),
+        let maxValue = Math.max(...values),
 
             // Build the paths for rounder or straight lines,
             // instructions used from:
             // https://medium.com/@francoisromain/smooth-a-svg-path-with-cubic-bezier-curves-e37b49d46c74
-            strategy = this.props.rounded ? this.bezierStrategy : this.lineStrategy,
-            pathCoordinates = this.formatValuesForLine(strategy),
-            fillCoordinates = this.formatValuesForFill(strategy),
+            strategy = rounded ? this.bezierStrategy : this.lineStrategy,
+            pathCoordinates = this.formatValuesForLine(strategy, values),
+            fillCoordinates = this.formatValuesForFill(strategy, values),
 
-            dotCoordinates = this.formatCoordinatesAsPair(),
+            dotCoordinates = this.formatCoordinatesAsPair(values),
             hoverWidth = 110 / dotCoordinates.length,
-            axisCoordinates = this.formatCoordinatesForAxis();
+            axisCoordinates = this.formatCoordinatesForAxis(axis);
 
         return (
             <Container>
@@ -255,7 +255,7 @@ class LineChart extends Component {
                 { this.state.shownValue !== null
                     ? (
                         <Value style={{right: this.state.shownPosition + "%",}}>
-                            {this.props.prefix} {formatNumber(this.state.shownValue, this.decimals)} {this.props.postfix}
+                            {prefix} {formatNumber(this.state.shownValue, decimals)} {postfix}
                         </Value>
                     ) : null
                 }
@@ -279,18 +279,18 @@ class LineChart extends Component {
     /**
      * @returns {Array}
      */
-    formatCoordinatesAsPair() {
+    formatCoordinatesAsPair(values = []) {
 
-        if (this.props.values.length < 2) {
+        if (values.length < 2) {
             return [];
         }
 
         let coordinates = [],
-            maxValue = Math.max(0, ...this.props.values),
-            step = 100 / (this.props.values.length - 1);
+            maxValue = Math.max(0, ...values),
+            step = 100 / (values.length - 1);
 
-        for (let i = 0; i < this.props.values.length; i++) {
-            coordinates.push([i*step, Math.min(maxValue, (maxValue - this.props.values[i]))]);
+        for (let i = 0; i < values.length; i++) {
+            coordinates.push([i*step, Math.min(maxValue, (maxValue - values[i]))]);
         }
 
         return coordinates;
@@ -301,17 +301,14 @@ class LineChart extends Component {
      *
      * @returns {Array}
      */
-    formatCoordinatesForAxis() {
+    formatCoordinatesForAxis(axis = []) {
 
-        if (!this.props.axis) {
-            return [];
-        }
 
         let values = [],
-            step = 100 / (this.props.axis.length - 1);
+            step = 100 / (axis.length - 1);
 
-        for (let i = 0; i < this.props.axis.length; i++) {
-            values.push({x: i*step, label: this.props.axis[i]});
+        for (let i = 0; i < axis.length; i++) {
+            values.push({x: i*step, label: axis[i]});
         }
 
         return values;
@@ -320,12 +317,13 @@ class LineChart extends Component {
 
     /**
      * @param {function} command
+     * @param {Array} values
      *
      * @returns {Array}
      */
-    formatValuesForLine(command) {
+    formatValuesForLine(command, values = []) {
 
-        let coordinates = this.formatCoordinatesAsPair();
+        let coordinates = this.formatCoordinatesAsPair(values);
 
         // build the d attributes by looping over the points
         return coordinates.reduce((acc, point, i, a) => i === 0
@@ -338,16 +336,17 @@ class LineChart extends Component {
 
     /**
      * @param {function} command
+     * @param {Array} values
      *
      * @returns {Array}
      */
-    formatValuesForFill(command) {
+    formatValuesForFill(command, values = []) {
 
-        let coordinates = this.formatCoordinatesAsPair(),
+        let coordinates = this.formatCoordinatesAsPair(values),
             fillCoordinates = [
-                [0, Math.max(...this.props.values)],
+                [0, Math.max(...values)],
                 ...coordinates,
-                [100, Math.max(...this.props.values)]
+                [100, Math.max(...values)]
             ];
 
         return fillCoordinates.reduce((acc, point, i, a) => {
