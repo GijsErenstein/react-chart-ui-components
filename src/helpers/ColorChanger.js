@@ -1,19 +1,19 @@
 
 class ColorChanger {
   /**
-     * Converts an HSL color value to RGB. Conversion formula
-     * adapted from http://en.wikipedia.org/wiki/HSL_color_space.
-     * Assumes h, s, and l are contained in the set [0, 1] and
-     * returns r, g, and b in the set [0, 255].
-     *
-     * @param   {number}  h       The hue
-     * @param   {number}  s       The saturation
-     * @param   {number}  l       The lightness
-     * @return  {Array}           The RGB representation
-     */
+   * Converts an HSL color value to RGB. Conversion formula
+   * adapted from http://en.wikipedia.org/wiki/HSL_color_space.
+   * Assumes h, s, and l are contained in the set [0, 1] and
+   * returns r, g, and b in the set [0, 255].
+   *
+   * @param   {number}  h       The hue
+   * @param   {number}  s       The saturation
+   * @param   {number}  l       The lightness
+   *
+   * @return  {Array}           The RGB representation
+   */
   static hslToRgb(h, s, l) {
-    let r; let g; let
-      b;
+    let r, g, b;
 
     if (s === 0) {
       r = g = b = l; // achromatic
@@ -38,17 +38,17 @@ class ColorChanger {
   }
 
   /**
-     * Converts an RGB color value to HSL. Conversion formula
-     * adapted from http://en.wikipedia.org/wiki/HSL_color_space.
-     * Assumes r, g, and b are contained in the set [0, 255] and
-     * returns h, s, and l in the set [0, 1].
-     *
-     * @param   {number}  r       The red color value
-     * @param   {number}  g       The green color value
-     * @param   {number}  b       The blue color value
+   * Converts an RGB color value to HSL. Conversion formula
+   * adapted from http://en.wikipedia.org/wiki/HSL_color_space.
+   * Assumes r, g, and b are contained in the set [0, 255] and
+   * returns h, s, and l in the set [0, 1].
    *
-     * @return  {Array}           The HSL representation
-     */
+   * @param   {number}  r       The red color value
+   * @param   {number}  g       The green color value
+   * @param   {number}  b       The blue color value
+   *
+   * @return  {Array}           The HSL representation
+   */
   static rgbToHsl(r, g, b) {
     r /= 255, g /= 255, b /= 255;
     const max = Math.max(r, g, b); const
@@ -73,12 +73,12 @@ class ColorChanger {
   }
 
   /**
-     *
-     * @param {string} color
-     * @param {number} amount
-     *
-     * @return {string|null}
-     */
+   *
+   * @param {string} color    hex color
+   * @param {number} amount   added brightness amount
+   *
+   * @return {string|null}    new hex color
+   */
   static lightenColor(color, amount = 0.5) {
     if (color && color.length >= 6) {
       const redValue = parseInt(color.slice(-6, -4), 16);
@@ -96,13 +96,14 @@ class ColorChanger {
   }
 
   /**
-     *
-     * @param {string} color
-     * @param {number} amount
-     *
-     * @return {string|null}
-     */
+   *
+   * @param {string} color    hex color
+   * @param {number} amount   added darkness amount
+   *
+   * @return {string|null}    new hex color
+   */
   static darkenColor(color, amount = 0.1) {
+
     if (color && color.length >= 6) {
       const redValue = parseInt(color.slice(-6, -4), 16);
       const greenValue = parseInt(color.slice(-4, -2), 16);
@@ -123,8 +124,9 @@ class ColorChanger {
   }
 
   /**
+   * @param {string} color  hex color
    *
-   * @param {string} color
+   * @return {string}       black or white in hex format
    */
   static getBlackOrWhiteContrastColor(color) {
     if (color && color.length >= 6) {
