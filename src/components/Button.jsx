@@ -43,11 +43,13 @@ function Button({ text = 'Submit', color = colors.interactive, onClick = () => {
 Button.defaultProps = {
   text: 'Submit',
   color: colors.interactive,
+  onClick: () => {},
 };
 
 
 Button.propTypes = {
   text: PropTypes.string,
+  onClick: PropTypes.func,
   color: PropTypes.string,
 };
 export default Button;
