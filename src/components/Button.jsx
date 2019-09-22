@@ -1,14 +1,23 @@
 import React from 'react';
-import { colors, spacings } from 'config/styles.js';
+import PropTypes from 'prop-types';
+
+import { colors, spacings } from 'config/styles';
 import styled from 'styled-components';
 import ColorChanger from 'helpers/ColorChanger';
 
-function Button({text = "Submit", color = colors.interactive, ...restProps}) {
+/**
+ *
+ * @param text
+ * @param color
+ * @param restProps
+ * @return {*}
+ * @constructor
+ */
+function Button({ text = 'Submit', color = colors.interactive, onClick = () => {} }) {
+  const lighterColor = ColorChanger.lightenColor(color, 0.1);
+  const contrastColor = ColorChanger.getBlackOrWhiteContrastColor(color);
 
-        let lighterColor = ColorChanger.lightenColor(color, 0.1),
-            contrastColor = ColorChanger.getBlackOrWhiteContrastColor(color);
-
-        const StyledButton = styled.button`
+  const StyledButton = styled.button`
             background-color: ${color};
             color: ${contrastColor};
             border-radius: ${spacings.tiny};
@@ -29,8 +38,16 @@ function Button({text = "Submit", color = colors.interactive, ...restProps}) {
             }
         `;
 
-        return <StyledButton { ...restProps }>{text}</StyledButton>;
-
+  return <StyledButton onClick={onClick}>{text}</StyledButton>;
 }
+Button.defaultProps = {
+  text: 'Submit',
+  color: colors.interactive,
+};
 
+
+Button.propTypes = {
+  text: PropTypes.string,
+  color: PropTypes.string,
+};
 export default Button;

@@ -7,10 +7,13 @@ module.exports = {
                 {
                     test: /\.jsx?$/,
                     exclude: /node_modules/,
-                    loader: "babel-loader"
+                    loader: "babel-loader",
+                    resolve: {
+                        extensions: ['.js', '.jsx'],
+                    }
                 },
-            ]
-        }
+            ],
+        },
     },
     title: "React Sample Components Library",
     styleguideDir: "dist-docs",

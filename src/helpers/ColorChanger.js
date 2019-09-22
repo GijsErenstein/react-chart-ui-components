@@ -13,18 +13,27 @@ class ColorChanger {
    * @return  {Array}           The RGB representation
    */
   static hslToRgb(h, s, l) {
-    let r, g, b;
+    let r;
+    let g;
+    let b;
 
     if (s === 0) {
-      r = g = b = l; // achromatic
+      r = l;
+      g = l;
+      b = l;
     } else {
       const hue2rgb = function hue2rgb(p, q, t) {
-        if (t < 0) t += 1;
-        if (t > 1) t -= 1;
-        if (t < 1 / 6) return p + (q - p) * 6 * t;
-        if (t < 1 / 2) return q;
-        if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
-        return p;
+        let t2 = t;
+        const q2 = q;
+        const p2 = p;
+
+        if (t2 < 0) t2 += 1;
+        if (t2 > 1) t2 -= 1;
+        if (t2 < 1 / 6) return p2 + (q2 - p) * 6 * t2;
+        if (t2 < 1 / 2) return q2;
+        if (t2 < 2 / 3) return p2 + (q2 - p2) * (2 / 3 - t) * 6;
+
+        return p2;
       };
 
       const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
@@ -50,14 +59,18 @@ class ColorChanger {
    * @return  {Array}           The HSL representation
    */
   static rgbToHsl(r, g, b) {
-    r /= 255, g /= 255, b /= 255;
+    r /= 255;
+    g /= 255;
+    b /= 255;
+
     const max = Math.max(r, g, b); const
       min = Math.min(r, g, b);
     let h; let s; const
       l = (max + min) / 2;
 
     if (max === min) {
-      h = s = 0; // achromatic
+      h = 0;
+      s = 0; // achromatic
     } else {
       const d = max - min;
       s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
@@ -103,7 +116,6 @@ class ColorChanger {
    * @return {string|null}    new hex color
    */
   static darkenColor(color, amount = 0.1) {
-
     if (color && color.length >= 6) {
       const redValue = parseInt(color.slice(-6, -4), 16);
       const greenValue = parseInt(color.slice(-4, -2), 16);
