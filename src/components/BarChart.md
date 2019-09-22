@@ -9,7 +9,6 @@ import { BarChart } from "graph-ui-components";
           values={[{
             label: 'Small',
             value: 10,
-            color: '#8338EC'
           }, {
             label : 'Medium',
             value : 13,
@@ -18,5 +17,31 @@ import { BarChart } from "graph-ui-components";
             label : 'Large',
             value : 19,
             color: '#FFBE0B'
-          }]} />
+          },
+          {
+                      label: 'Small',
+                      value: 10,
+                      color: '#8338EC'
+                    }, {
+                      label : 'Medium',
+                      value : 13,
+                      color: '#FF006E'
+                    }, {
+                      label : 'Large',
+                      value : 19,
+                      color: '#FFBE0B'
+                    },
+                    {
+                                label: 'Small',
+                                value: 10,
+                                color: '#8338EC'
+                              }, {
+                                label : 'Medium',
+                                value : 13,
+                                color: '#FF006E'
+                              }, {
+                                label : 'Large',
+                                value : 19,
+                                color: '#FFBE0B'
+                              }]} />
 ```
